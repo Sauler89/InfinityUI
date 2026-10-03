@@ -46679,13 +46679,22 @@ menu
 			rgSelectedBook = nil
 		end
 		rgLibraryCount = rglj
-		rgLibraryDescString = rgGetLibraryDescription(rgGetLibraryEntryTitle(Infinity_FetchString(rgJournalLibrary[rgSelectedBook].text)))
-		--if selectedBeast ~= 0 then
+		if rgSelectedBook ~= nil and rgSelectedBook ~= 0 and rgJournalLibrary[rgSelectedBook] ~= nil then
+			rgLibraryDescString = rgGetLibraryDescription(rgGetLibraryEntryTitle(Infinity_FetchString(rgJournalLibrary[rgSelectedBook].text)))
+		else
+			rgLibraryDescString = ''
+		end
+		if selectedBeast ~= nil and selectedBeast ~= 0 and rgJournalBestiary[selectedBeast] ~= nil then
 			rgBeastDescString = rgGetBestiaryDescription(rgGetBestiaryEntryTitle(Infinity_FetchString(rgJournalBestiary[selectedBeast].text)))
 			rgBeastTitleString = rgGetBestiaryEntryTitle(Infinity_FetchString(rgJournalBestiary[selectedBeast].text))
 			rgBeastStats = rgGetBestiaryStatistics(Infinity_FetchString(rgJournalBestiary[selectedBeast].text))
 			rgGetBestiaryFrame = rgGetBestiaryPicture(Infinity_FetchString(rgJournalBestiary[selectedBeast].text))
-		--end
+		else
+			rgBeastDescString = ''
+			rgBeastTitleString = ''
+			rgBeastStats = {}
+			rgGetBestiaryFrame = 0
+		end
 		
 		
 		table.sort(rgJournalLibrary,rgOrderJournalLibrary)
