@@ -46545,8 +46545,9 @@ function rgOrderBestiary(s1,s2)
 	return out1 < out2
 end
 function rgOrderJournalLibrary(s1,s2)
-	
-	return s1.text < s2.text
+	local text1 = Infinity_FetchString(s1.text):lower()
+	local text2 = Infinity_FetchString(s2.text):lower()
+	return text1 < text2
 end
 function rgLibraryJournalEntry(text)
 	if (string.match(text, getUiString('RG_LIBRARY'))) then
