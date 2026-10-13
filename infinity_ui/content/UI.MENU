@@ -949,13 +949,18 @@ function updateAttrTable()
 		--{ 'rgempty','0', Infinity_FetchString(11767) .. ': ' .. characters[currentID].AC.missile .. '\n' },
 		{ 'rgempty','0', head .. getUiString('HIT_POINTS_LABEL') .. ': ' .. characters[currentID].HP.current .. '/' .. characters[currentID].HP.max},
 		{ 'rgempty','0', characters[currentID].HP.details .. '\n'},
-		{ 'rgempty','0', head .. rgGetTHAC0(currentID,body)},
-		{ 'rgempty','0', characters[currentID].THAC0.details .. '\n'},
-		{ 'rgempty','0', head .. rgGetDamage(currentID,body)},
-		{ 'rgempty','0', characters[currentID].damage.details .. '\n'},
-		{ 'rgempty','0', head .. Infinity_FetchString(characters[currentID].proficiencies.numAttacks.strRef) .. ': ' .. characters[currentID].proficiencies.numAttacks.current .. '\n'},
-		{ 'rgempty','0', head .. getUiString('CURRENT_SCRIPT_LABEL') .. ': ' .. characters[currentID].proficiencies.currentScript},
 		}
+		local character = characters[currentID]
+		rgAppendRecordHandStat(listItems, currentID, 'MAIN_HAND_THAC0', character.THAC0.current, character.THAC0.details, head, body, false)
+		if character.THAC0.offhand ~= nil then
+			rgAppendRecordHandStat(listItems, currentID, 'OFF_HAND_THAC0', character.THAC0.offhand, character.THAC0.detailsOffhand, head, body, true)
+		end
+		rgAppendRecordHandStat(listItems, currentID, 'MAIN_HAND_DAMAGE', character.damage.min .. ' - ' .. character.damage.max, character.damage.details, head, body, false)
+		if character.damage.minOffhand ~= nil and character.damage.maxOffhand ~= nil then
+			rgAppendRecordHandStat(listItems, currentID, 'OFF_HAND_DAMAGE', character.damage.minOffhand .. ' - ' .. character.damage.maxOffhand, character.damage.detailsOffhand, head, body, true)
+		end
+		table.insert(listItems, { 'rgempty','0', head .. Infinity_FetchString(character.proficiencies.numAttacks.strRef) .. ': ' .. character.proficiencies.numAttacks.current .. '\n'})
+		table.insert(listItems, { 'rgempty','0', head .. getUiString('CURRENT_SCRIPT_LABEL') .. ': ' .. character.proficiencies.currentScript})
 	end
 
 	--characterViewable = characterScreen:IsCharacterViewable()
@@ -967,6 +972,51 @@ function updateAttrTable()
 	--showAbilityBonuses = showAbilityBonuses == 1 and characterViewable == true
 
 end
+
+function rgGetRecordWeaponName(rgid, offhand)
+	local character = characters[rgid]
+	local damage = character and character.damage
+	if damage == nil then return '' end
+	if offhand and damage.minOffhand ~= nil and damage.maxOffhand ~= nil then
+		local slot = character.equipment and character.equipment.shield
+		local name = slot and slot.item and slot.item.name
+		if type(name) == 'string' and name ~= '' then return name end
+	end
+	local details = damage.details
+	if offhand then details = damage.detailsOffhand end
+	if type(details) ~= 'string' then return '' end
+	local firstLine = details:match('^%s*([^\r\n]+)') or ''
+	local slotNames = offhand and { 'shield' } or { 'weapon0', 'weapon1', 'weapon2', 'weapon3', 'quiver0', 'quiver1', 'quiver2' }
+	for _, slotName in ipairs(slotNames) do
+		local slot = character.equipment and character.equipment[slotName]
+		local name = slot and slot.item and slot.item.name
+		if type(name) == 'string' and name ~= '' and firstLine:sub(1, #name) == name and firstLine:sub(#name + 1):match('^%s*:') then
+			return name
+		end
+	end
+	-- The engine also supplies weapon names in damage details when equipment data is unavailable.
+	-- Accept a weapon damage-dice line, rather than mistaking a modifier label for an item name.
+	local name = details:match('^%s*([^\r\n]+):%s*%d+[dD]%d+')
+	if name ~= nil then
+		return (name:gsub('%s+$', ''))
+	end
+	return ''
+end
+
+function rgAppendRecordHandStat(items, rgid, label, value, details, head, body, offhand)
+	local title = getUiString(label)
+	local name = rgGetRecordWeaponName(rgid, offhand)
+	if name ~= '' then
+		title = name .. ' (' .. title .. ')'
+	end
+	table.insert(items, { 'rgempty', '0', head .. title .. ': ' .. value .. body })
+	if type(details) == 'string' and details:find('%S') then
+		table.insert(items, { 'rgempty', '0', details .. '\n' })
+	else
+		table.insert(items, { 'rgempty', '0', '' })
+	end
+end
+
 function rgGetTHAC0(rgid, body)
 	local str = getUiString('THAC0_LABEL') .. ': ' .. characters[rgid].THAC0.current .. body
 	if(characters[rgid].THAC0.offhand) then
