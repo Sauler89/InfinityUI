@@ -887,6 +887,15 @@ function updateAttrTable()
 		if characters[currentID].proficiencies.fightingstyles.current ~= "" then
 			table.insert(listItems, { 'rgempty','0', characters[currentID].proficiencies.fightingstyles.current})
 		end
+		local weaponStyleBonus = characters[currentID].proficiencies.weaponStyleBonus
+		if type(weaponStyleBonus) == 'string' then
+			weaponStyleBonus = weaponStyleBonus:match('^%s*(.-)%s*$')
+			if weaponStyleBonus ~= '' then
+				table.insert(listItems, { 'rgempty','0', '' })
+				table.insert(listItems, { 'rgempty','0', head .. getUiString('WEAPON_STYLE_BONUS_LABEL') .. ':' })
+				table.insert(listItems, { 'rgempty','0', weaponStyleBonus })
+			end
+		end
 		
 		table.insert(listItems, { 'rgempty','0', '' })
 		table.insert(listItems, { 'rgempty','0', head .. getUiString('SAVING_THROWS_LABEL') .. ':'})
